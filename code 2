@@ -1,0 +1,92 @@
+System.log("******** nasuniGetFromAPI Inputs ********");
+System.log("nasuniUrl : "+nasuniUrl);
+System.log("nasuniToken : "+nasuniToken);
+System.log("url : "+url);
+System.log("Method : "+method);
+System.log("content : "+content);
+System.log("version : "+version);
+System.log("");
+try
+{
+	if (!version) { var version = 'v1';}
+	if (!nasuniUrl){throw "The nasuni URL is empty"}
+	if (nasuniUrl) {
+		System.log("Looking up Rest Authorization for nasuni URL : " + nasuniUrl);
+		//Fetching all the host and getting the nasuni Host
+		var getHosts = RESTHostManager.getHosts();
+	  	for(var restHostId in getHosts){	
+	  		var restHost = RESTHostManager.getHost(getHosts[restHostId]);
+			//Matching the URL of the nasuni Plugin
+			if (restHost.url.toLowerCase() == nasuniUrl.toLowerCase()) {
+		   		nasuniHost = restHost;
+				System.log("nasuni Instance Found : "+nasuniHost.Name +", URL : "+restHost.url);
+				break;
+			}
+	  	}
+	}
+	//If the nasuni Host is found
+	if(nasuniHost)
+	{
+		url = encodeURI("api/" + version + "/" + url);
+		System.log("Executing......nasuni URL : "+restHost.url + "/" + url + ", Method : " + method+ ", Content : "+content);
+		var request = nasuniHost.createRequest(method, url, content);
+		
+		//Setting Header and Content Type
+		request.contentType = "application\/json";
+		request.setHeader("Accept", "application/json");
+		request.setHeader("Authorization", nasuniToken);
+		var response;
+		var num = 0;
+		//Retrying for 5 times
+		while (num == 0 || num < 1){
+			try {
+				response = request.execute();
+				
+			}
+			catch (e) {
+				System.error("REST call failed");
+			    throw "Stopping Execution, Error : "+e;
+			}
+			var statusCode = response.statusCode;
+			if (statusCode == 200 || statusCode == 201 || statusCode == 202 || statusCode == 204) {
+			    num = 7;
+			}
+			else if (statusCode == 404){ 
+				System.log("Error Code : "+statusCode+", Retrying..........");
+			    num++ ;
+			}
+			else if (statusCode == 406){ 
+				System.log("Error Code : "+statusCode+", Retrying..........");
+			    num++ ;
+			}
+			else if (statusCode == 401){ 
+				System.log("Error Code : "+statusCode+", Retrying..........");
+			    num++ ;
+			}
+			else {
+				System.error("REST Call Status Code = " + statusCode);
+				System.error("REST Response was: "+response.contentAsString);
+				throw "REST Call Status Code = " + statusCode+", REST Response was: "+response.contentAsString;
+				num = 7;
+			}
+		}
+		if(response)
+		{
+			System.log("Response : "+response.contentAsString);
+			return response;
+		}
+		else
+		{
+			throw "No Response found";
+		}
+	}
+	else
+	{
+		throw "The nasuni URL"+nasuniUrl+"not found in the REST plugin";
+	}
+}
+catch(e)
+{
+	var error = "Error occured in Actionelement. Error Details : "+e;
+	throw error;
+}	
