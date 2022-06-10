@@ -1,0 +1,45 @@
+System.log("******** Get the Creds Inputs ********");
+System.log("Rubrik URL : "+wfRubrikUrl)
+System.log("Rubrik Configuration : "+attRubrikTokenConf);
+System.log("");
+
+//Main script
+try
+{
+	//Get the attributes of Token
+	var attributes = attRubrikTokenConf.attributes;
+	for each(var attribute in attributes)
+	{
+		System.log("Quering Attribute : "+attribute.name);
+		System.log("Quering Attribute URL : "+attribute.value.url+" and matching with "+wfRubrikUrl);
+		System.log("Quering Attribute Username : "+attribute.value.username);
+		//Match the URL with the input URL
+		if(attribute.value.url.toLowerCase() == wfRubrikUrl.toLowerCase())
+		{
+			outRubrikUsername = attribute.value.username;
+			outRubrikPassword = attribute.value.password;
+			System.log("Matching Attribute : "+attribute.name);
+			System.log("Matching URL : "+attribute.value.url);
+			System.log("Matching Username : "+outRubrikUsername);
+			System.log("Matching Password : "+outRubrikPassword);
+			System.log("");
+			break;
+		}
+		System.log("");
+	}
+	if(outRubrikUsername && outRubrikPassword)
+	{
+		System.log("The creds is found for instance : "+wfRubrikUrl);
+		System.log("Username : "+outRubrikUsername);
+		System.log("Password : "+outRubrikPassword);
+	}
+	else
+	{
+		throw "The Username and/or Password is not found for instance : "+wfRubrikUrl;
+	}
+}
+catch(e)
+{
+	var error = "Error occured in 'Get the Creds' Task. Error Details : "+e;
+	throw error;
+}
